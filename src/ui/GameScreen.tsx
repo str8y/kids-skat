@@ -293,6 +293,19 @@ export function GameScreen({ mode, level = 'easy', settings, playerAnimal, onExi
   const trickPlays = shownTrick?.plays ?? game.trick;
   const chooser = game.forehand;
   const trump = game.trump;
+  /** Gegenüber sitzend: Elemente, die Spieler 2 (oben) lesen soll, um 180° drehen. */
+  const faceTop = (p: PlayerId) => (flipTop && p === 1 ? 'rot180' : '');
+  /** Wer gerade angesprochen wird – nach ihm richten sich Sprechblase, Tipp-Knopf und „du?“. */
+  const addressee: PlayerId = game.phase === 'chooseTrump' ? chooser : game.turn;
+  const trumpBox = (extra = '') => (
+    <div class={`trump-box ${extra}`} aria-label={trump ? `Trumpf: ${trump === 'grand' ? 'Grand' : SUIT_NAME[trump]}` : 'Trumpf noch offen'}>
+      <small>TRUMPF</small>
+      {trump === null && <b class="muted">?</b>}
+      {trump === 'grand' && <b class="grand">B</b>}
+      {trump && trump !== 'grand' && <b class={isRed(trump) ? 'red' : 'black'}>{SUIT_SYMBOL[trump]}</b>}
+      <small>{trump === 'grand' ? 'nur Buben' : '+ Buben'}</small>
+    </div>
+  );
 
   return (
     <div class={`screen table mode-${mode} ${flipTop ? 'opposite' : ''}`}>
@@ -300,7 +313,7 @@ export function GameScreen({ mode, level = 'easy', settings, playerAnimal, onExi
         <Home />
       </button>
 
-      <div class="player-tag top-tag">
+      <div class={`player-tag top-tag ${faceTop(1)}`}>
         <Animal kind={animals[1]} size={mode === 'ai' ? 76 : 56} ring={game.turn === 1 && game.phase === 'play'} />
         <span>{names[1]}</span>
       </div>
@@ -308,7 +321,7 @@ export function GameScreen({ mode, level = 'easy', settings, playerAnimal, onExi
       <div class={`area-top ${flipTop ? 'rot180' : ''}`}>{row(1)}</div>
 
       <aside class="side-left">
-        <Meter value={pts[1]} label={names[1]} color="#E06B33" />
+        <Meter value={pts[1]} label={names[1]} color="#E06B33" className={faceTop(1)} />
         <Chest size={60} />
         <Meter value={pts[0]} label={names[0]} color="#F2B630" big />
       </aside>
@@ -325,27 +338,21 @@ export function GameScreen({ mode, level = 'easy', settings, playerAnimal, onExi
               />
             </div>
           ))}
-          {trickPlays.length === 0 && game.phase === 'play' && <div class="trick-slot">{isHuman(game.turn) ? 'du?' : ''}</div>}
+          {trickPlays.length === 0 && game.phase === 'play' && <div class={`trick-slot turnable ${faceTop(game.turn)}`}>{isHuman(game.turn) ? 'du?' : ''}</div>}
         </div>
         {message && (
-          <button class="bubble" onClick={() => say(message)} aria-label="Nochmal vorlesen">
+          <button class={`bubble turnable ${faceTop(addressee)}`} onClick={() => say(message)} aria-label="Nochmal vorlesen">
             <Speaker size={24} /> <span>{message}</span>
           </button>
         )}
       </div>
 
       <aside class="side-right">
-        <div class="trump-box" aria-label={trump ? `Trumpf: ${trump === 'grand' ? 'Grand' : SUIT_NAME[trump]}` : 'Trumpf noch offen'}>
-          <small>TRUMPF</small>
-          {trump === null && <b class="muted">?</b>}
-          {trump === 'grand' && <b class="grand">B</b>}
-          {trump && trump !== 'grand' && <b class={isRed(trump) ? 'red' : 'black'}>{SUIT_SYMBOL[trump]}</b>}
-          <small>{trump === 'grand' ? 'nur Buben' : '+ Buben'}</small>
-        </div>
+        {trumpBox(faceTop(1))}
         <div class="trophies">
           <small>POKALE</small>
           {([1, 0] as const).map((p) => (
-            <div class="trophy-row" key={p}>
+            <div class={`trophy-row ${faceTop(p)}`} key={p}>
               <Animal kind={animals[p]} size={26} />
               {[0, 1, 2].map((i) => (
                 <Trophy key={i} size={24} filled={i < (over?.m ?? match).trophies[p]} />
@@ -354,10 +361,11 @@ export function GameScreen({ mode, level = 'easy', settings, playerAnimal, onExi
           ))}
         </div>
         {settings.hints && (
-          <button class="round-btn hint-btn" aria-label="Tipp" onClick={showHint} disabled={busy || !isHuman(game.turn) || game.phase !== 'play'}>
+          <button class={`round-btn hint-btn turnable ${faceTop(addressee)}`} aria-label="Tipp" onClick={showHint} disabled={busy || !isHuman(game.turn) || game.phase !== 'play'}>
             <Bulb size={44} />
           </button>
         )}
+        {flipTop && trumpBox()}
       </aside>
 
       <div class="area-bottom">{row(0)}</div>
@@ -430,10 +438,10 @@ export function GameScreen({ mode, level = 'easy', settings, playerAnimal, onExi
   );
 }
 
-function Meter({ value, label, color, big = false }: { value: number; label: string; color: string; big?: boolean }) {
+function Meter({ value, label, color, big = false, className = '' }: { value: number; label: string; color: string; big?: boolean; className?: string }) {
   const pct = Math.min(100, (value / 120) * 100);
   return (
-    <div class={`meter ${big ? 'big' : ''}`} role="img" aria-label={`${label}: ${value} Augen`}>
+    <div class={`meter ${big ? 'big' : ''} ${className}`} role="img" aria-label={`${label}: ${value} Augen`}>
       <div class="meter-fill" style={{ height: `${pct}%`, background: color }} />
       <div class="meter-goal" />
       <span class="meter-label">{label}</span>

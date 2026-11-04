@@ -175,11 +175,11 @@ button:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 .bottom-tag { left: 34px; bottom: 20px; }
 .mode-ai .bottom-tag { display: none; }
 .mode-duo .top-tag { top: 88px; }
-.opposite .top-tag span { transform: rotate(180deg); }
 .area-top { grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: center; }
 .area-bottom { grid-column: 2 / span 2; grid-row: 3; display: flex; align-items: flex-start; justify-content: center; padding-top: 6px; padding-right: 150px; }
 .mode-duo .area-bottom { grid-column: 2; padding-right: 0; }
 .rot180 { transform: rotate(180deg); }
+.turnable { transition: transform .35s ease; }
 .stacks { display: flex; gap: 12px; }
 .stacks.big { gap: 6px; }
 .stack { position: relative; }
