@@ -9,3 +9,7 @@ Issues and specs live as local markdown files under `.scratch/`. See `docs/agent
 ### Domain docs
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
+### Design
+
+Visual design reference (Claude Design link, tokens, components): `docs/design.md`. UI tickets must follow it.
