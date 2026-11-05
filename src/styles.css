@@ -197,6 +197,9 @@ button:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 .mode-duo .meter, .mode-duo .meter.big { height: 130px; }
 .meter-fill { position: absolute; left: 0; right: 0; bottom: 0; transition: height .6s; }
 .meter-goal { position: absolute; left: 0; right: 0; bottom: 50.8%; height: 3px; background: var(--cream); }
+.meter-schneider { position: absolute; left: 0; right: 0; bottom: 25.8%; height: 0; border-top: 3px dashed var(--cream); opacity: .75; }
+.meter-value { position: absolute; top: 6px; left: 0; right: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 20px; line-height: 1; color: var(--cream); text-shadow: 0 1px 2px rgba(0,0,0,.6), 0 0 6px rgba(0,0,0,.35); pointer-events: none; }
+.meter.big .meter-value { font-size: 24px; }
 .meter-label { position: absolute; bottom: 4px; width: 100%; text-align: center; font-size: 0; }
 .area-mid { grid-column: 2; grid-row: 2; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
 .trick { display: flex; gap: 36px; align-items: center; min-height: 180px; }
@@ -245,6 +248,7 @@ button:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 .result-player b { font-family: var(--display); font-size: 30px; }
 .result-meter { position: relative; width: 260px; height: 30px; background: #E2D6C1; border-radius: 15px; overflow: hidden; }
 .result-meter .meter-fill { top: 0; bottom: 0; left: 0; right: auto; background: var(--gold); transition: width 1s; }
+.result-meter .meter-schneider { left: 25.8%; right: auto; top: 0; bottom: 0; width: 0; height: auto; border-top: 0; border-left: 3px dashed var(--felt); }
 .result-meter .meter-goal { left: 50.8%; right: auto; top: 0; bottom: 0; width: 3px; height: auto; background: var(--felt); }
 .schneider { margin: 0; font-weight: 800; color: #8E7CC3; font-size: 22px; }
 

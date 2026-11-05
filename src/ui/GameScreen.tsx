@@ -412,7 +412,9 @@ function Meter({ value, label, color, big = false, className = '' }: { value: nu
   return (
     <div class={`meter ${big ? 'big' : ''} ${className}`} role="img" aria-label={`${label}: ${value} Augen`}>
       <div class="meter-fill" style={{ height: `${pct}%`, background: color }} />
+      <div class="meter-schneider" />
       <div class="meter-goal" />
+      <span class="meter-value" aria-hidden="true">{value}</span>
       <span class="meter-label">{label}</span>
     </div>
   );
@@ -439,6 +441,7 @@ function ResultView({ r, m, names, animals, mode }: { r: GameResult; m: Match; n
             <Animal kind={animals[p]} size={84} ring={r.winner === p} />
             <div class="result-meter">
               <div class="meter-fill" style={{ width: `${(r.points[p] / 120) * 100}%` }} />
+              <div class="meter-schneider" />
               <div class="meter-goal" />
             </div>
             <b>{r.points[p]} Augen</b>
