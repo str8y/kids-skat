@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
 import type { Level } from '../engine/ai';
 import { type AnimalId, type Profile, type Settings, type Store, loadStore, newProfile, saveStore } from '../storage';
 import { say, setSpeechEnabled, stopSpeaking } from '../speech';
+import { stickersNew } from '../voice/menu';
 import { setSoundEnabled, sfx } from '../sound';
 import { STICKERS, stickersForGame, stickersForLessons } from '../stickers';
 import { GameScreen, type GameEndInfo } from './GameScreen';
@@ -72,7 +73,7 @@ export function App() {
     window.setTimeout(() => {
       setToast(ids);
       sfx.star();
-      say(`Neuer Sticker: ${ids.map((id) => STICKERS.find((s) => s.id === id)!.title).join(', ')}!`);
+      say(stickersNew(ids.map((id) => STICKERS.find((s) => s.id === id)!.title)));
       window.setTimeout(() => setToast([]), 4000);
     }, 4500);
   };

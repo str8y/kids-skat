@@ -18,3 +18,5 @@
 | **Lektion** | Tutorial-Einheit aus „Schau zu“ und „Jetzt du“, bis zu 3 **Sterne**. |
 | **Sticker** | Erfolg für besondere Leistungen, gesammelt im Album. |
 | **Gegner-Leiter** | Fuchs (leicht) → Eule (mittel) → Bär (stark); nächster Gegner nach Partie-Sieg. |
+| **Erklär-Modus** | Einstellung: Bei jedem Zug wird ausführlich erklärt, was man legen darf, warum ein Stich gewonnen wurde und worauf man achten sollte. |
+| **Satzkatalog** | Alle Sätze, die die App vorlesen kann, mit Varianten (`src/voice/`); Grundlage für die Audiodateien. |

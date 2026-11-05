@@ -16,6 +16,8 @@ export interface Settings {
   muted: boolean;
   voice: boolean;
   hints: boolean;
+  /** Erklär-Modus: bei jedem Zug ausführlich erklären, was man darf und warum. */
+  explain: boolean;
   coins: boolean;
   seating: 'opposite' | 'side';
 }
@@ -29,7 +31,7 @@ export interface Store {
 
 const KEY = 'junior-skat:v1';
 
-export const defaultSettings: Settings = { muted: false, voice: true, hints: true, coins: true, seating: 'opposite' };
+export const defaultSettings: Settings = { muted: false, voice: true, hints: true, explain: false, coins: true, seating: 'opposite' };
 
 export function emptyStore(): Store {
   return { v: 1, profiles: [], activeId: null, settings: { ...defaultSettings } };
