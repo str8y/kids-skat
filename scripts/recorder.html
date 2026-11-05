@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Junior Skat – Aufnahme</title>
+<style>
+  :root {
+    --bg: #F6F1E7; --panel: #fff; --ink: #2A2A2A; --muted: #7a7468; --line: #e4dccb;
+    --green: #2F5D3A; --green-soft: #e3eee5; --red: #C0392B; --red-soft: #f7e1de; --amber: #d08b1f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.4 system-ui, -apple-system, sans-serif; color: var(--ink); background: var(--bg); height: 100vh; display: grid; grid-template-columns: 380px 1fr; }
+  aside { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; background: var(--panel); }
+  .filters { padding: 12px; display: grid; gap: 8px; border-bottom: 1px solid var(--line); }
+  .filters input, .filters select { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; font: inherit; background: #fff; }
+  .seg { display: flex; gap: 4px; }
+  .seg button { flex: 1; padding: 6px; border: 1px solid var(--line); background: #fff; border-radius: 8px; cursor: pointer; font: inherit; }
+  .seg button.on { background: var(--green); color: #fff; border-color: var(--green); }
+  #list { overflow-y: auto; flex: 1; }
+  .item { display: grid; grid-template-columns: 18px 1fr; gap: 8px; padding: 7px 12px; border-bottom: 1px solid #f1ece1; cursor: pointer; }
+  .item:hover { background: #faf7f0; }
+  .item.cur { background: var(--green-soft); }
+  .item .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; border: 2px solid var(--muted); }
+  .item.done .dot { background: var(--green); border-color: var(--green); }
+  .item .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .g { font-size: 12px; color: var(--muted); }
+  main { display: flex; flex-direction: column; padding: 28px 40px; min-width: 0; gap: 20px; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .progress { flex: 1; min-width: 200px; }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .bar > div { height: 100%; background: var(--green); width: 0; transition: width .3s; }
+  .opts { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 14px; align-items: center; }
+  .opts select { font: inherit; padding: 4px; border-radius: 6px; border: 1px solid var(--line); max-width: 220px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 32px 36px; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 18px; min-height: 0; transition: border-color .15s, box-shadow .15s; }
+  .card.rec { border-color: var(--red); box-shadow: 0 0 0 4px var(--red-soft); }
+  .meta { color: var(--muted); font-size: 14px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .meta code { background: #f3eee2; padding: 1px 6px; border-radius: 5px; }
+  .badge { padding: 1px 8px; border-radius: 10px; font-size: 13px; }
+  .badge.done { background: var(--green-soft); color: var(--green); }
+  .badge.todo { background: #f3eee2; color: var(--muted); }
+  #text { font-size: clamp(26px, 3.4vw, 44px); line-height: 1.3; font-weight: 600; }
+  .ctx { color: var(--muted); font-size: 15px; display: grid; gap: 4px; }
+  .ctx div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .meter { height: 14px; background: #eee8da; border-radius: 7px; overflow: hidden; position: relative; }
+  .meter > div { height: 100%; width: 0; background: var(--green); transition: width 50ms; }
+  .meter.clip > div { background: var(--red); }
+  .status { min-height: 22px; font-weight: 600; }
+  .status.rec { color: var(--red); }
+  .status.err { color: var(--red); }
+  .status.ok { color: var(--green); }
+  .buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+  .buttons button { padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; }
+  .buttons button.primary { background: var(--red); border-color: var(--red); color: #fff; font-weight: 600; }
+  .buttons button:disabled { opacity: .4; cursor: default; }
+  kbd { font: 12px ui-monospace, monospace; background: #f3eee2; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; }
+  .keys { color: var(--muted); font-size: 13px; display: flex; gap: 14px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<aside>
+  <div class="filters">
+    <input id="search" placeholder="Suchen (Text, Gruppe, Datei) …">
+    <select id="group"><option value="">Alle Gruppen</option></select>
+    <div class="seg" id="seg">
+      <button data-f="todo" class="on">Fehlend</button>
+      <button data-f="done">Vorhanden</button>
+      <button data-f="all">Alle</button>
+    </div>
+  </div>
+  <div id="list"></div>
+</aside>
+<main>
+  <div class="top">
+    <div class="progress"><span id="count">…</span><div class="bar"><div id="bar"></div></div></div>
+    <div class="opts">
+      <label><input type="checkbox" id="autoStop" checked> Auto-Stopp bei Stille</label>
+      <label><input type="checkbox" id="autoNext" checked> Danach weiter</label>
+      <label><input type="checkbox" id="autoPlay"> Danach anhören</label>
+      <select id="mic" title="Mikrofon"><option value="">Standard-Mikrofon</option></select>
+    </div>
+  </div>
+  <div class="card" id="card">
+    <div class="meta"><span id="badge" class="badge todo">fehlt</span><span id="gid"></span><code id="file"></code><span id="pos"></span></div>
+    <div id="text">Lade Katalog …</div>
+    <div class="meter" id="meter"><div></div></div>
+    <div class="status" id="status">Leertaste drücken und lossprechen.</div>
+    <div class="buttons">
+      <button class="primary" id="bRec">● Aufnehmen</button>
+      <button id="bPlay">▶ Anhören</button>
+      <button id="bPrev">← Zurück</button>
+      <button id="bNext">Weiter →</button>
+      <button id="bDel">Datei löschen</button>
+    </div>
+    <div class="ctx" id="ctx"></div>
+  </div>
+  <div class="keys">
+    <span><kbd>Leertaste</kbd> Aufnahme starten/stoppen + speichern</span>
+    <span><kbd>Esc</kbd> Aufnahme verwerfen</span>
+    <span><kbd>P</kbd> anhören</span>
+    <span><kbd>←</kbd>/<kbd>→</kbd> zurück/weiter</span>
+    <span><kbd>⌫</kbd> Datei löschen</span>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+let all = [], view = [], cur = null, filter = 'todo';
+const store = { get(k, d) { try { return JSON.parse(localStorage.getItem('rec.' + k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem('rec.' + k, JSON.stringify(v)); } catch {} } };
+
+// ---------- Liste ----------
+async function load() {
+  all = await (await fetch('/api/catalog')).json();
+  const groups = [...new Set(all.map((e) => e.id))];
+  $('group').innerHTML = '<option value="">Alle Gruppen</option>' + groups.map((g) => `<option>${esc(g)}</option>`).join('');
+  filter = store.get('filter', 'todo');
+  $('group').value = store.get('group', '');
+  for (const id of ['autoStop', 'autoNext', 'autoPlay']) $(id).checked = store.get(id, $(id).checked);
+  render();
+  const last = all.find((e) => e.key === store.get('cur', ''));
+  select(last && view.includes(last) ? last : view[0] ?? all[0]);
+}
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+function render() {
+  const q = $('search').value.trim().toLowerCase();
+  const g = $('group').value;
+  document.querySelectorAll('#seg button').forEach((b) => b.classList.toggle('on', b.dataset.f === filter));
+  view = all.filter((e) =>
+    (filter === 'all' || (filter === 'done') === e.done) &&
+    (!g || e.id === g) &&
+    (!q || e.text.toLowerCase().includes(q) || e.id.toLowerCase().includes(q) || e.key.includes(q)));
+  $('list').innerHTML = view.map((e) => `<div class="item${e.done ? ' done' : ''}${e === cur ? ' cur' : ''}" data-k="${e.key}"><span class="dot"></span><div><div class="t">${esc(e.text)}</div><div class="g">${esc(e.id)}</div></div></div>`).join('') || '<div style="padding:16px;color:var(--muted)">Nichts gefunden.</div>';
+  const done = all.filter((e) => e.done).length;
+  $('count').textContent = `${done} von ${all.length} aufgenommen · ${view.length} in der Liste`;
+  $('bar').style.width = (100 * done / all.length) + '%';
+}
+
+function select(e) {
+  if (!e) return;
+  cur = e;
+  store.set('cur', e.key);
+  $('text').textContent = e.text;
+  $('gid').textContent = e.id;
+  $('file').textContent = e.key + '.mp3';
+  $('badge').textContent = e.done ? 'vorhanden' : 'fehlt';
+  $('badge').className = 'badge ' + (e.done ? 'done' : 'todo');
+  const i = view.indexOf(e);
+  $('pos').textContent = i >= 0 ? `${i + 1} / ${view.length}` : '';
+  $('bPlay').disabled = $('bDel').disabled = !e.done;
+  // Nächste Sätze als Vorschau – zum Vorlesen schon mal anschauen.
+  const next = i >= 0 ? view.slice(i + 1, i + 4) : [];
+  $('ctx').innerHTML = next.length ? '<b>Danach:</b>' + next.map((n) => `<div>${esc(n.text)}</div>`).join('') : '';
+  document.querySelectorAll('#list .item').forEach((el) => el.classList.toggle('cur', el.dataset.k === e.key));
+  document.querySelector(`#list .item[data-k="${e.key}"]`)?.scrollIntoView({ block: 'nearest' });
+}
+
+function step(d) {
+  let i = view.indexOf(cur);
+  if (i < 0) i = d > 0 ? -1 : view.length;
+  select(view[Math.max(0, Math.min(view.length - 1, i + d))]);
+}
+
+/** Nach dem Speichern: im Filter „Fehlend“ fällt der Satz raus – also den nächsten in der alten Reihenfolge nehmen. */
+function afterSave(e) {
+  const i = view.indexOf(e);
+  const following = view.slice(i + 1).find((n) => filter !== 'todo' || !n.done);
+  render();
+  select(following ?? view[0] ?? e);
+}
+
+$('list').addEventListener('click', (ev) => {
+  const k = ev.target.closest('.item')?.dataset.k;
+  if (k && !recording) select(all.find((e) => e.key === k));
+});
+$('search').addEventListener('input', render);
+$('group').addEventListener('change', () => { store.set('group', $('group').value); render(); select(view[0]); });
+$('seg').addEventListener('click', (ev) => { const f = ev.target.dataset.f; if (f) { filter = f; store.set('filter', f); render(); if (!view.includes(cur)) select(view[0]); } });
+for (const id of ['autoStop', 'autoNext', 'autoPlay']) $(id).addEventListener('change', () => store.set(id, $(id).checked));
+
+// ---------- Aufnahme ----------
+let ctx = null, stream = null, node = null, source = null;
+let recording = false, chunks = [], heardSpeech = false, silentFor = 0, startedAt = 0;
+const SPEECH = 0.02;        // RMS-Schwelle für „spricht“
+const STOP_AFTER = 1.1;     // Sekunden Stille nach dem Sprechen → Auto-Stopp
+
+function status(msg, cls = '') { $('status').textContent = msg; $('status').className = 'status ' + cls; }
+
+async function initAudio() {
+  if (ctx && stream) return;
+  ctx = ctx ?? new AudioContext();
+  const deviceId = $('mic').value || store.get('mic', '') || undefined;
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: { deviceId: deviceId ? { exact: deviceId } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 }
+  });
+  await listMics();
+  const code = `class R extends AudioWorkletProcessor { process(i) { const c = i[0] && i[0][0]; if (c) this.port.postMessage(c.slice(0)); return true; } } registerProcessor('rec', R);`;
+  await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([code], { type: 'application/javascript' })));
+  source = ctx.createMediaStreamSource(stream);
+  node = new AudioWorkletNode(ctx, 'rec');
+  node.port.onmessage = (ev) => onFrame(ev.data);
+  source.connect(node);
+}
+
+async function listMics() {
+  const devs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audioinput');
+  const active = stream?.getAudioTracks()[0]?.getSettings().deviceId;
+  $('mic').innerHTML = devs.map((d) => `<option value="${d.deviceId}">${esc(d.label || 'Mikrofon')}</option>`).join('');
+  if (active) $('mic').value = active;
+}
+$('mic').addEventListener('change', async () => {
+  store.set('mic', $('mic').value);
+  stream?.getTracks().forEach((t) => t.stop());
+  source?.disconnect();
+  stream = null;
+  await initAudio().catch((err) => status('Mikrofon: ' + err.message, 'err'));
+});
+
+let peakHold = 0;
+function onFrame(buf) {
+  let sum = 0, peak = 0;
+  for (let i = 0; i < buf.length; i++) { const v = buf[i]; sum += v * v; const a = Math.abs(v); if (a > peak) peak = a; }
+  const rms = Math.sqrt(sum / buf.length);
+  peakHold = Math.max(peak, peakHold * 0.92);
+  $('meter').firstElementChild.style.width = Math.min(100, peakHold * 100) + '%';
+  $('meter').classList.toggle('clip', peakHold > 0.98);
+  if (!recording) return;
+  chunks.push(buf);
+  const dt = buf.length / ctx.sampleRate;
+  if (rms > SPEECH) { heardSpeech = true; silentFor = 0; } else silentFor += dt;
+  if ($('autoStop').checked && heardSpeech && silentFor > STOP_AFTER && ctx.currentTime - startedAt > 0.8) stop(true);
+}
+
+async function start() {
+  if (recording || !cur) return;
+  try { await initAudio(); await ctx.resume(); } catch (err) { return status('Kein Mikrofon: ' + err.message, 'err'); }
+  stopPlayback();
+  chunks = []; heardSpeech = false; silentFor = 0; startedAt = ctx.currentTime;
+  recording = true;
+  $('card').classList.add('rec');
+  $('bRec').textContent = '■ Stopp';
+  status('Aufnahme läuft … ' + ($('autoStop').checked ? '(stoppt nach kurzer Stille)' : '(Leertaste zum Stoppen)'), 'rec');
+}
+
+async function stop(save) {
+  if (!recording) return;
+  recording = false;
+  $('card').classList.remove('rec');
+  $('bRec').textContent = '● Aufnehmen';
+  if (!save) return status('Verworfen.');
+  const e = cur;
+  const pcm = process(concat(chunks), ctx.sampleRate);
+  if (!pcm) return status('Nichts gehört – nochmal?', 'err');
+  status('Speichere …');
+  const res = await fetch(`/api/audio/${e.key}?rate=${ctx.sampleRate}`, { method: 'PUT', body: pcm.buffer });
+  if (!res.ok) return status('Fehler: ' + await res.text(), 'err');
+  e.done = true;
+  status(`Gespeichert: ${e.key}.mp3 (${(pcm.length / ctx.sampleRate).toFixed(1)} s)`, 'ok');
+  if ($('autoPlay').checked) await play(e);
+  if ($('autoNext').checked) afterSave(e); else { render(); select(e); }
+}
+
+function concat(list) {
+  const out = new Float32Array(list.reduce((n, c) => n + c.length, 0));
+  let o = 0; for (const c of list) { out.set(c, o); o += c.length; }
+  return out;
+}
+
+/** Stille vorn/hinten abschneiden, Tastenklick am Anfang ignorieren, normalisieren, ein-/ausblenden. */
+function process(x, rate) {
+  const win = Math.round(rate * 0.02);
+  const rms = [];
+  for (let i = 0; i + win <= x.length; i += win) { let s = 0; for (let j = i; j < i + win; j++) s += x[j] * x[j]; rms.push(Math.sqrt(s / win)); }
+  // Sprache = mindestens 3 laute Fenster (60 ms) hintereinander – kurze Klicks zählen nicht.
+  const loud = rms.map((r) => r > SPEECH * 0.6);
+  let first = -1, last = -1;
+  for (let i = 0; i + 2 < loud.length; i++) if (loud[i] && loud[i + 1] && loud[i + 2]) { first = i; break; }
+  for (let i = loud.length - 1; i >= 2; i--) if (loud[i] && loud[i - 1] && loud[i - 2]) { last = i; break; }
+  if (first < 0 || last <= first) return null;
+  // Leise Ausläufer (z. B. „s“ am Ende) mitnehmen.
+  while (first > 0 && rms[first - 1] > SPEECH * 0.25) first--;
+  while (last < rms.length - 1 && rms[last + 1] > SPEECH * 0.25) last++;
+  const a = Math.max(0, first * win - Math.round(rate * 0.08));
+  const b = Math.min(x.length, (last + 1) * win + Math.round(rate * 0.15));
+  const y = x.slice(a, b);
+  let peak = 0; for (const v of y) peak = Math.max(peak, Math.abs(v));
+  const gain = peak > 0 ? Math.min(8, 0.89 / peak) : 1; // auf -1 dBFS
+  const fade = Math.round(rate * 0.01);
+  const out = new Int16Array(y.length);
+  for (let i = 0; i < y.length; i++) {
+    let v = y[i] * gain;
+    if (i < fade) v *= i / fade; else if (i > y.length - fade) v *= (y.length - i) / fade;
+    out[i] = Math.max(-32768, Math.min(32767, Math.round(v * 32767)));
+  }
+  return out;
+}
+
+// ---------- Abspielen / Löschen ----------
+const player = new Audio();
+function stopPlayback() { player.pause(); }
+function play(e) {
+  if (!e?.done) return Promise.resolve();
+  return new Promise((resolve) => {
+    player.onended = player.onerror = () => resolve();
+    player.src = `/audio/${e.key}.mp3?t=${Date.now()}`;
+    player.play().catch(() => resolve());
+  });
+}
+async function del(e) {
+  if (!e?.done || !confirm(`Datei ${e.key}.mp3 löschen?\n\n${e.text}`)) return;
+  const res = await fetch(`/api/audio/${e.key}`, { method: 'DELETE' });
+  if (!res.ok) return status('Fehler: ' + await res.text(), 'err');
+  e.done = false;
+  status('Gelöscht.');
+  render(); select(e);
+}
+
+$('bRec').onclick = () => (recording ? stop(true) : start());
+$('bPlay').onclick = () => play(cur);
+$('bPrev').onclick = () => step(-1);
+$('bNext').onclick = () => step(1);
+$('bDel').onclick = () => del(cur);
+
+document.addEventListener('keydown', (ev) => {
+  if (ev.target.matches('input[type=text], input:not([type]), select') && ev.key !== 'Escape') return;
+  if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
+  const k = ev.key;
+  if (k === ' ') { ev.preventDefault(); if (!ev.repeat) recording ? stop(true) : start(); }
+  else if (k === 'Escape') { if (recording) stop(false); else document.activeElement?.blur(); }
+  else if (recording) return;
+  else if (k === 'ArrowRight' || k === 'ArrowDown') { ev.preventDefault(); step(1); }
+  else if (k === 'ArrowLeft' || k === 'ArrowUp') { ev.preventDefault(); step(-1); }
+  else if (k === 'p' || k === 'P') play(cur);
+  else if (k === 'Backspace' || k === 'Delete') { ev.preventDefault(); del(cur); }
+});
+
+load().catch((err) => status('Katalog nicht geladen: ' + err.message, 'err'));
+</script>
+</body>
+</html>

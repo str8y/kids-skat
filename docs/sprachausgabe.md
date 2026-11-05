@@ -13,6 +13,7 @@ eine fertige Audiodatei geben (z. B. von ElevenLabs). Fehlt die Datei, liest die
 | `src/voice/catalog.ts` | sammelt alles zum Katalog (ein Eintrag je Satz) |
 | `src/speech.ts` | spielt Audiodateien ab, sonst Browserstimme |
 | `scripts/elevenlabs.ts` | erzeugt die Audiodateien |
+| `scripts/recorder.ts` + `.html` | Aufnahme-Tool zum Selbst-Einsprechen |
 | `docs/sprachkatalog.md` | lesbare Liste aller Sätze mit Dateinamen (wird erzeugt) |
 
 Eine Ansage besteht aus mehreren **Bausteinen** (je ein Satz), z. B.
@@ -44,10 +45,31 @@ npm run voice:generate                   # alles Fehlende erzeugen
 **Kosten:** ElevenLabs rechnet nach Zeichen. `npm run voice:list` zeigt die Summe (derzeit rund
 37 500 Zeichen für den ganzen Katalog).
 
+## Selbst einsprechen
+
+```bash
+npm run voice:record               # öffnet das Aufnahme-Tool auf http://localhost:5180
+```
+
+Die Seite zeigt Satz für Satz aus dem Katalog (Filter: fehlend/vorhanden, Gruppe, Suche).
+**Leertaste** startet die Aufnahme; nach kurzer Stille stoppt sie von selbst (abschaltbar),
+schneidet Stille ab, normalisiert die Lautstärke, speichert `public/audio/<schlüssel>.mp3`,
+trägt die Datei in `manifest.json` ein und springt zum nächsten Satz.
+`P` hört an, `←`/`→` blättert, `Esc` verwirft, `⌫` löscht die Datei.
+
+Ändert sich ein Satz im Code, startet der Server von selbst neu – Seite neu laden genügt.
+Geänderte Sätze bekommen einen neuen Dateinamen und stehen dann unter „Fehlend“.
+
+## Aufräumen
+
+```bash
+npm run voice:prune                # löscht Dateien, deren Satz es nicht mehr gibt (ohne API-Schlüssel)
+```
+
 ## Eigene Dateien
 
-Wer Sätze anders erzeugt oder selbst aufnimmt: Datei unter dem Namen aus
-`docs/sprachkatalog.md` nach `public/audio/` legen und `npm run voice:manifest` ausführen.
+Wer Sätze anders erzeugt: Datei unter dem Namen aus `docs/sprachkatalog.md` nach
+`public/audio/` legen und `npm run voice:manifest` ausführen.
 
 ## Sätze ändern oder ergänzen
 
