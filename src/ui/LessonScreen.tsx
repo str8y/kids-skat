@@ -32,7 +32,7 @@ function ItemView({ item, settings, state, onClick, size = 'lg' }: {
     const n = Number(item.slice(6));
     const inner = (
       <div class="lesson-chest">
-        <div class="meter big"><div class="meter-fill" style={{ height: `${(n / 120) * 100}%`, background: '#F2B630' }} /><div class="meter-goal" /></div>
+        <div class="meter big"><div class="meter-fill" style={{ height: `${(n / 120) * 100}%`, background: '#F2B630' }} /><div class="meter-schneider" /><div class="meter-goal" /><span class="meter-value" aria-hidden="true">{n}</span></div>
         <span>{n} Augen</span>
       </div>
     );
