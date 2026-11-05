@@ -7,6 +7,7 @@
 //   npm run voice:generate -- --force      auch vorhandene Dateien neu erzeugen
 //   npm run voice:manifest                 nur manifest.json neu schreiben (z. B. nach Handarbeit)
 //   npm run voice:generate -- --prune      Dateien löschen, die nicht mehr im Katalog sind
+//   npm run voice:prune                    nur aufräumen (ohne ElevenLabs-Schlüssel)
 //
 // Umgebungsvariablen:
 //   ELEVENLABS_API_KEY    (Pflicht zum Erzeugen)
@@ -19,17 +20,14 @@
 //   ELEVENLABS_LANGUAGE   (optional, z. B. „de“ – nur bei Modellen, die das unterstützen)
 //
 // Dateien landen in public/audio/<key>.mp3; die App findet sie über public/audio/manifest.json.
-// Eigene Aufnahmen gehen auch: Datei unter dem Namen aus docs/sprachkatalog.md ablegen
-// und `npm run voice:manifest` ausführen.
+// Eigene Aufnahmen: `npm run voice:record` (Aufnahme-Tool im Browser) – oder Datei unter dem
+// Namen aus docs/sprachkatalog.md ablegen und `npm run voice:manifest` ausführen.
 import { existsSync, mkdirSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { type CatalogEntry, catalog } from '../src/voice/catalog';
+import { join } from 'node:path';
+import type { CatalogEntry } from '../src/voice/catalog';
+import { AUDIO, EXT, ROOT, entries, exists, fileOf, writeManifest } from './voice-files';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const AUDIO = join(ROOT, 'public', 'audio');
 const LIST = join(ROOT, 'docs', 'sprachkatalog.md');
-const EXT = '.mp3';
 
 const args = process.argv.slice(2);
 const flag = (name: string) => args.includes(`--${name}`);
@@ -37,10 +35,6 @@ const opt = (name: string) => {
   const i = args.indexOf(`--${name}`);
   return i >= 0 ? args[i + 1] : undefined;
 };
-
-const entries = catalog();
-const fileOf = (e: CatalogEntry) => e.key + EXT;
-const exists = (e: CatalogEntry) => existsSync(join(AUDIO, fileOf(e)));
 
 function writeList() {
   const groups = new Map<string, CatalogEntry[]>();
@@ -62,14 +56,6 @@ function writeList() {
     out.push('');
   }
   writeFileSync(LIST, out.join('\n'));
-}
-
-function writeManifest() {
-  const files: Record<string, string> = {};
-  for (const e of entries) if (exists(e)) files[e.key] = fileOf(e);
-  mkdirSync(AUDIO, { recursive: true });
-  writeFileSync(join(AUDIO, 'manifest.json'), JSON.stringify({ files }, null, 0) + '\n');
-  return Object.keys(files).length;
 }
 
 function stats() {
@@ -152,7 +138,8 @@ function prune() {
   const keep = new Set(entries.map(fileOf));
   const old = readdirSync(AUDIO).filter((f) => f.endsWith(EXT) && !keep.has(f));
   old.forEach((f) => unlinkSync(join(AUDIO, f)));
-  if (old.length) console.log(`${old.length} veraltete Dateien gelöscht.`);
+  old.forEach((f) => console.log(`  gelöscht: ${f}`));
+  console.log(`${old.length} veraltete Dateien gelöscht.`);
 }
 
 const cmd = args[0]?.startsWith('--') || !args[0] ? 'generate' : args[0];
@@ -160,6 +147,10 @@ if (cmd === 'list') {
   writeList();
   stats();
   console.log(`Liste geschrieben: ${LIST}`);
+} else if (cmd === 'prune') {
+  prune();
+  console.log(`manifest.json: ${writeManifest()} Dateien.`);
+  stats();
 } else if (cmd === 'manifest') {
   console.log(`manifest.json: ${writeManifest()} Dateien.`);
 } else {
