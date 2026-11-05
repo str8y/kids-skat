@@ -7,6 +7,8 @@ Offiziersskat lernen und spielen – für Kinder ab 5 und Erwachsene. Progressiv
 - **Zu zweit** an einem Tablet (gegenüber oder nebeneinander)
 - Hilfen: leuchtende erlaubte Karten, Tipps, Münzen auf Karten, Schatzkiste, Trumpf-Vorschlag
 - Profile mit Tier-Avatar, Sticker-Album, alles lokal gespeichert
+- **Erklär-Modus**: erklärt jeden Zug ausführlich, wie ein Opa am Spieltisch
+- Sprachausgabe mit fertigen Audiodateien (ElevenLabs), sonst Browserstimme – siehe `docs/sprachausgabe.md`
 
 ## Entwickeln
 

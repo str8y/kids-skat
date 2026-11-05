@@ -9,7 +9,18 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
-      workbox: { globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2}'] },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,woff,woff2}'],
+        // Sprachdateien nicht vorab laden (zu groß), sondern beim ersten Abspielen merken.
+        runtimeCaching: [
+          { urlPattern: /\/audio\/manifest\.json$/, handler: 'NetworkFirst', options: { cacheName: 'audio-manifest' } },
+          {
+            urlPattern: /\/audio\/.*\.mp3$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'audio', expiration: { maxEntries: 3000 }, rangeRequests: true }
+          }
+        ]
+      },
       manifest: {
         name: 'Junior Skat',
         short_name: 'Junior Skat',

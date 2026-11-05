@@ -8,6 +8,8 @@ import { CardBack, CardFace } from './Card';
 import { card } from '../engine/engine';
 import { Back, Book, Check, Gear, Lock, People, Plus, Question, Speaker, Star, Trash, Trophy } from './icons';
 import { LESSONS } from './lessons';
+import { RULES } from './rules';
+import { MENU, animalTap, homeHello, opponentPick, profileHello, say0, stickerNotYet, stickersHave } from '../voice/menu';
 
 const displayName = (p: Profile) => p.name || ANIMAL_NAME[p.animal];
 
@@ -21,7 +23,7 @@ export function ProfileScreen({ profiles, onPick, onCreate, onDelete }: {
   const [editing, setEditing] = useState(false);
 
   useEffect(() => {
-    say(creating ? 'Hallo! Welches Tier bist du? Tipp auf ein Tier.' : 'Hallo! Wer spielt? Tipp auf dein Tier.');
+    say(profileHello(creating));
   }, [creating]);
 
   if (creating) {
@@ -34,7 +36,7 @@ export function ProfileScreen({ profiles, onPick, onCreate, onDelete }: {
         <div class="animal-grid">
           {PROFILE_ANIMALS.map((a) => (
             <button key={a} class={`animal-pick ${animal === a ? 'picked' : ''}`} aria-label={ANIMAL_NAME[a]}
-              onClick={() => { setAnimal(a); say(ANIMAL_NAME[a]); }}>
+              onClick={() => { setAnimal(a); say(animalTap(a)); }}>
               <Animal kind={a} size={120} />
             </button>
           ))}
@@ -86,7 +88,7 @@ export function ProfileScreen({ profiles, onPick, onCreate, onDelete }: {
 // ---------- Startmenü ----------
 export function HomeScreen({ profile, onNav }: { profile: Profile; onNav: (s: 'learn' | 'opponents' | 'duo' | 'rules' | 'stickers' | 'profiles' | 'settings') => void }) {
   const totalStars = LESSONS.reduce((n, l) => n + (profile.stars[l.id] ?? 0), 0);
-  useEffect(() => say(`Hallo ${displayName(profile)}! Was möchtest du machen?`), [profile.id]);
+  useEffect(() => say(homeHello(displayName(profile))), [profile.id]);
   return (
     <div class="screen home">
       <div class="home-top">
@@ -94,7 +96,7 @@ export function HomeScreen({ profile, onNav }: { profile: Profile; onNav: (s: 'l
           <Animal kind={profile.animal} size={52} /> {displayName(profile)}
         </button>
         <div class="home-actions">
-          <button class="round-btn light" aria-label="Sticker-Album" onClick={() => { say('Deine Sticker'); onNav('stickers'); }}>
+          <button class="round-btn light" aria-label="Sticker-Album" onClick={() => { say(say0(MENU.stickers)); onNav('stickers'); }}>
             <Star size={34} />
           </button>
           <button class="round-btn light" aria-label="Einstellungen" onClick={() => onNav('settings')}><Gear size={30} /></button>
@@ -107,22 +109,22 @@ export function HomeScreen({ profile, onNav }: { profile: Profile; onNav: (s: 'l
         <h1>Junior Skat</h1>
       </div>
       <div class="home-grid">
-        <button class="tile" onClick={() => { say('Lernen'); onNav('learn'); }}>
+        <button class="tile" onClick={() => { say(say0(MENU.learn)); onNav('learn'); }}>
           <span class="tile-icon" style={{ background: '#FCE6B6', color: '#D9822B' }}><Book size={72} /></span>
           Lernen
           <span class="tile-stars"><Star size={24} /><small>{totalStars} / {LESSONS.length * 3}</small></span>
         </button>
-        <button class="tile" onClick={() => { say('Gegen ein Tier spielen'); onNav('opponents'); }}>
+        <button class="tile" onClick={() => { say(say0(MENU.vsAnimal)); onNav('opponents'); }}>
           <span class="tile-icon" style={{ background: '#F8D6C4' }}><Animal kind="fuchs" size={100} /></span>
           Spielen
           <small>gegen ein Tier</small>
         </button>
-        <button class="tile" onClick={() => { say('Zu zweit spielen'); onNav('duo'); }}>
+        <button class="tile" onClick={() => { say(say0(MENU.duo)); onNav('duo'); }}>
           <span class="tile-icon" style={{ background: '#D9E4F2', color: '#3D6FB5' }}><People size={84} /></span>
           Zu zweit
           <small>ein Tablet</small>
         </button>
-        <button class="tile" onClick={() => { say('Die Regeln'); onNav('rules'); }}>
+        <button class="tile" onClick={() => { say(say0(MENU.rules)); onNav('rules'); }}>
           <span class="tile-icon" style={{ background: '#DDEBD8', color: '#2F5D3A' }}><Question size={72} /></span>
           Regeln
           <small>nachschauen</small>
@@ -134,7 +136,7 @@ export function HomeScreen({ profile, onNav }: { profile: Profile; onNav: (s: 'l
 
 // ---------- Gegner-Leiter ----------
 export function OpponentScreen({ profile, onPick, onExit }: { profile: Profile; onPick: (l: Level) => void; onExit: () => void }) {
-  useEffect(() => say('Gegen wen möchtest du spielen? Besiege ein Tier, dann kommt das nächste.'), []);
+  useEffect(() => say(say0(MENU.opponents)), []);
   return (
     <div class="screen menu-screen">
       <header class="lesson-head">
@@ -148,7 +150,7 @@ export function OpponentScreen({ profile, onPick, onExit }: { profile: Profile; 
           return (
             <button key={o.level} class={`opponent ${unlocked ? '' : 'locked'}`} disabled={!unlocked}
               aria-label={`${o.name}, ${o.sub}${unlocked ? '' : ', noch gesperrt'}`}
-              onClick={() => { say(`Du spielst gegen ${o.level === 'easy' ? 'den Fuchs' : o.level === 'medium' ? 'die Eule' : 'den Bären'}. Viel Glück!`); onPick(o.level); }}>
+              onClick={() => { say(opponentPick(o.kind)); onPick(o.level); }}>
               <Animal kind={o.kind} size={170} />
               <b>{o.name}</b>
               <small>{o.sub}</small>
@@ -163,20 +165,9 @@ export function OpponentScreen({ profile, onPick, onExit }: { profile: Profile; 
 }
 
 // ---------- Regeln ----------
-const RULES: { title: string; text: string; show: string[] }[] = [
-  { title: 'Die Karten', text: 'Es gibt 32 Karten in vier Farben: Kreuz, Pik, Herz und Karo. Jede Farbe hat Sieben, Acht, Neun, Zehn, Bube, Dame, König und Ass.', show: ['c7', 'sD', 'hK', 'dA'] },
-  { title: 'Die Stapel', text: 'Jeder bekommt acht Stapel. Unten liegt eine Karte verdeckt, oben eine offen. Spielst du die obere Karte, wird die untere nach dem Stich umgedreht.', show: ['back', 'h10'] },
-  { title: 'Trumpf wählen', text: 'Wer nicht gegeben hat, wählt den Trumpf: eine Farbe, oder Grand. Dann spielt er die erste Karte aus.', show: ['hA', 'hB'] },
-  { title: 'Die Buben', text: 'Die vier Buben sind immer Trumpf und die stärksten Karten. Kreuz Bube ist der stärkste, dann Pik, Herz und Karo.', show: ['cB', 'sB', 'hB', 'dB'] },
-  { title: 'Der Stich', text: 'Einer spielt eine Karte aus, der andere legt eine dazu. Die stärkere Karte gewinnt den Stich. Wer gewinnt, spielt als Nächstes aus.', show: ['hK', 'hA'] },
-  { title: 'Reihenfolge', text: 'In jeder Farbe gilt: Ass, Zehn, König, Dame, Neun, Acht, Sieben. Trumpf schlägt jede andere Farbe.', show: ['sA', 's10', 'sK', 'sD'] },
-  { title: 'Farbe bedienen', text: 'Hast du die ausgespielte Farbe, musst du sie legen. Buben gehören dabei zum Trumpf. Hast du die Farbe nicht, darfst du jede Karte legen.', show: ['d7', 'dK'] },
-  { title: 'Augen zählen', text: 'Ass zählt elf, Zehn zehn, König vier, Dame drei, Bube zwei. Sieben, Acht und Neun zählen nichts. Zusammen sind es 120 Augen.', show: ['dA', 'd10', 'dK', 'dD', 'dB'] },
-  { title: 'Gewinnen', text: 'Wer mehr als 60 Augen hat, gewinnt das Spiel und bekommt einen Pokal. Wer zuerst drei Pokale hat, gewinnt die Partie. Bei 60 zu 60 ist es unentschieden.', show: [] }
-];
 
 export function RulesScreen({ settings, onExit }: { settings: Settings; onExit: () => void }) {
-  useEffect(() => say('Die Regeln. Tipp auf ein Bild, dann lese ich es vor.'), []);
+  useEffect(() => say(say0(MENU.rulesIntro)), []);
   return (
     <div class="screen menu-screen rules">
       <header class="lesson-head">
@@ -207,7 +198,7 @@ export function StickerSymbol({ symbol }: { symbol: string }) {
 }
 
 export function StickerScreen({ profile, onExit }: { profile: Profile; onExit: () => void }) {
-  useEffect(() => say(`Du hast ${profile.stickers.length} von ${STICKERS.length} Stickern.`), []);
+  useEffect(() => say(stickersHave(profile.stickers.length)), []);
   return (
     <div class="screen menu-screen">
       <header class="lesson-head">
@@ -220,7 +211,7 @@ export function StickerScreen({ profile, onExit }: { profile: Profile; onExit: (
           const has = profile.stickers.includes(s.id);
           return (
             <button key={s.id} class={`sticker ${has ? 'has' : 'missing'}`} style={has ? { background: s.color } : undefined}
-              onClick={() => say(has ? s.say : `Noch nicht geschafft: ${s.title}`)} aria-label={s.title}>
+              onClick={() => say(has ? s.say : stickerNotYet(s.title))} aria-label={s.title}>
               {has ? <StickerSymbol symbol={s.symbol} /> : <Lock size={40} />}
               <small>{s.title}</small>
             </button>
@@ -233,7 +224,7 @@ export function StickerScreen({ profile, onExit }: { profile: Profile; onExit: (
 
 // ---------- Einstellungen ----------
 export function SettingsScreen({ settings, onChange, onExit }: { settings: Settings; onChange: (s: Settings) => void; onExit: () => void }) {
-  const toggle = (key: 'voice' | 'hints' | 'coins' | 'muted') => onChange({ ...settings, [key]: !settings[key] });
+  const toggle = (key: 'voice' | 'hints' | 'explain' | 'coins' | 'muted') => onChange({ ...settings, [key]: !settings[key] });
   const Row = ({ label, on, onClick }: { label: string; on: boolean; onClick: () => void }) => (
     <button class={`setting ${on ? 'on' : ''}`} onClick={onClick} aria-pressed={on}>
       <span>{label}</span>
@@ -250,6 +241,7 @@ export function SettingsScreen({ settings, onChange, onExit }: { settings: Setti
         <Row label="Ton an" on={!settings.muted} onClick={() => toggle('muted')} />
         <Row label="Vorlesen" on={settings.voice} onClick={() => toggle('voice')} />
         <Row label="Hilfen (Leuchten und Tipps)" on={settings.hints} onClick={() => toggle('hints')} />
+        <Row label="Erklär-Modus: jeden Zug genau erklären" on={settings.explain} onClick={() => toggle('explain')} />
         <Row label="Münzen auf den Karten" on={settings.coins} onClick={() => toggle('coins')} />
         <div class="setting">
           <span>Zu zweit sitzen</span>

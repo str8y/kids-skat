@@ -3,6 +3,7 @@ import { useEffect, useState } from 'preact/hooks';
 import { card as toCard } from '../engine/engine';
 import type { Settings } from '../storage';
 import { say } from '../speech';
+import { MENU, lessonDone, say0 } from '../voice/menu';
 import { sfx } from '../sound';
 import { CardBack, CardFace } from './Card';
 import { Back, Check, Speaker, Star } from './icons';
@@ -65,7 +66,7 @@ export function LessonScreen({ lesson, settings, onDone, onExit }: Props) {
       const stars = starsFor(mistakes);
       setFinished(stars);
       sfx.win();
-      say(stars === 3 ? 'Wunderbar! Drei Sterne!' : stars === 2 ? 'Gut gemacht! Zwei Sterne.' : 'Geschafft! Ein Stern. Probier es nochmal für mehr Sterne.');
+      say(lessonDone(stars));
       onDone(stars);
     }
   };
@@ -162,7 +163,7 @@ export function LessonScreen({ lesson, settings, onDone, onExit }: Props) {
 }
 
 export function LessonList({ stars, onPick, onExit }: { stars: Record<string, number>; onPick: (l: Lesson) => void; onExit: () => void }) {
-  useEffect(() => say('Lernen. Tipp auf eine Lektion.'), []);
+  useEffect(() => say(say0(MENU.lessonsIntro)), []);
   return (
     <div class="screen menu-screen">
       <header class="lesson-head">
