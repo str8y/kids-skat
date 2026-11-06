@@ -228,9 +228,9 @@ export function GameScreen({ mode, level = 'easy', settings, playerAnimal, onExi
   // ----- Darstellung -----
   const row = (p: PlayerId) => {
     const myTurn = game.phase === 'play' && game.turn === p && isHuman(p) && !busy;
-    const big = p === 0 || mode === 'duo';
+    // Beide Reihen gleich groß (auch gegen den Computer): gleiche Karte = gleiches Bild.
     return (
-      <div class={`stacks ${big ? 'big' : 'small'}`}>
+      <div class="stacks">
         {game.stacks[p].map((s, i) => {
           let state: 'legal' | 'dim' | 'hint' | 'wrong' | null = null;
           if (s.open && myTurn) {
@@ -240,18 +240,18 @@ export function GameScreen({ mode, level = 'easy', settings, playerAnimal, onExi
           }
           return (
             <div class="stack" key={i}>
-              {s.hidden && <CardBack size={big ? 'md' : 'sm'} className="under" />}
+              {s.hidden && <CardBack size="md" className="under" />}
               {s.open && (
                 <CardFace
                   card={s.open}
-                  size={big ? 'md' : 'sm'}
+                  size="md"
                   coins={settings.coins}
                   state={state}
                   className={`top ${revealed.has(s.open.id) ? 'flip-in' : ''} ${myTurn && legalIds.has(s.open.id) && settings.hints ? 'lift' : ''}`}
                   onClick={isHuman(p) ? () => onCardTap(p, s.open!) : undefined}
                 />
               )}
-              {!s.open && !s.hidden && <div class={`card card-${big ? 'md' : 'sm'} empty`} />}
+              {!s.open && !s.hidden && <div class={`card card-md empty`} />}
             </div>
           );
         })}

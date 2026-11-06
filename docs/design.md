@@ -49,7 +49,7 @@ Bildschirme **ohne Entwurf** (abgeleitet aus den Bausteinen): Profilauswahl, Geg
 
 ## Bausteine
 
-- **Karte** (`CardFace`): Größen sm 84×118, md 104×148, lg 120×170; oben Wert, Mitte Farbsymbol, unten Münzen (= Augen, abschaltbar). Zustände: `legal` (Gold-Leuchten), `dim` (abgedunkelt, nicht durchsichtig), `hint` (blau, hüpft), `win` (grün), `wrong` (rot, wackelt).
+- **Karte** (`CardFace`): Größen sm 84×118, md 104×148, lg 120×170; oben Wert, Mitte Farbsymbol, unten Münzen (= Augen, abschaltbar) in festen Fünferreihen, damit gleiche Augen auf jeder Kartengröße gleich aussehen. Im Spiel liegen beide Kartenreihen in md – auch gegen den Computer. Zustände: `legal` (Gold-Leuchten), `dim` (abgedunkelt, nicht durchsichtig), `hint` (blau, hüpft), `win` (grün), `wrong` (rot, wackelt).
 - **Rückseite** (`CardBack`): Holz mit cremefarbenem Rand und Tannensymbol.
 - **Stapel**: Rückseite oben angedeutet, offene Karte darüber versetzt.
 - **Schatzkiste/Meter**: senkrechte Leiste 0–120 Augen, weiße Ziel-Linie bei 61, gestrichelte Schneider-Linie bei 31 (ab hier „aus dem Schneider“), aktuelle Augenzahl als Zahl oben in der Leiste.
