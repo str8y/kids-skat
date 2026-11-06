@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'preact/hooks';
+import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { Level } from '../engine/ai';
 import { type AnimalId, type Profile, type Settings, type Store, loadStore, newProfile, saveStore } from '../storage';
 import { say, setSpeechEnabled, stopSpeaking } from '../speech';
@@ -10,6 +10,7 @@ import { LessonList, LessonScreen } from './LessonScreen';
 import { LESSONS, type Lesson } from './lessons';
 import { HomeScreen, OpponentScreen, ProfileScreen, RulesScreen, SettingsScreen, StickerScreen, StickerSymbol } from './Screens';
 import { Muted, Speaker } from './icons';
+import { H, W, stageSize } from './stage';
 
 type Route =
   | { name: 'profiles' }
@@ -22,31 +23,33 @@ type Route =
   | { name: 'stickers' }
   | { name: 'settings' };
 
-const W = 1180;
-const H = 820;
-
 function useStageScale() {
-  const [scale, setScale] = useState(1);
+  const ref = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ scale: 1, width: W, height: H });
   const [portrait, setPortrait] = useState(false);
   useLayoutEffect(() => {
+    const el = ref.current!;
     const fit = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      setScale(Math.min(w / W, h / H));
-      setPortrait(h > w * 1.1);
+      // Die Viewport-Fläche ist schon um die Safe-Area (Notch, Home-Balken) verkleinert.
+      const { width: w, height: h } = el.getBoundingClientRect();
+      if (!w || !h) return;
+      setSize(stageSize(w, h));
+      setPortrait(window.innerHeight > window.innerWidth * 1.1);
     };
     fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
     window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
+    return () => { ro.disconnect(); window.removeEventListener('resize', fit); };
   }, []);
-  return { scale, portrait };
+  return { ref, ...size, portrait };
 }
 
 export function App() {
   const [store, setStore] = useState<Store>(loadStore);
   const [route, setRoute] = useState<Route>(() => (store.activeId && store.profiles.some((p) => p.id === store.activeId) ? { name: 'home' } : { name: 'profiles' }));
   const [toast, setToast] = useState<string[]>([]);
-  const { scale, portrait } = useStageScale();
+  const { ref: viewportRef, scale, width, height, portrait } = useStageScale();
 
   const settings = store.settings;
   const profile = store.profiles.find((p) => p.id === store.activeId) ?? null;
@@ -146,8 +149,8 @@ export function App() {
   }
 
   return (
-    <div class="viewport">
-      <div class="stage" style={{ width: `${W}px`, height: `${H}px`, transform: `translate(-50%, -50%) scale(${scale})` }}>
+    <div class="viewport" ref={viewportRef}>
+      <div class="stage" style={{ width: `${width}px`, height: `${height}px`, transform: `translate(-50%, -50%) scale(${scale})` }}>
         {screen}
         <button class={`round-btn mute-btn ${settings.muted ? 'off' : ''}`} aria-label={settings.muted ? 'Ton an' : 'Ton aus'}
           onClick={() => setSettings({ ...settings, muted: !settings.muted })}>
