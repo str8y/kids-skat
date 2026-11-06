@@ -12,7 +12,8 @@
     "voice:generate": "tsx scripts/elevenlabs.ts generate",
     "voice:manifest": "tsx scripts/elevenlabs.ts manifest",
     "voice:record": "tsx watch --clear-screen=false scripts/recorder.ts",
-    "voice:prune": "tsx scripts/elevenlabs.ts prune"
+    "voice:prune": "tsx scripts/elevenlabs.ts prune",
+    "voice:piper": "tsx scripts/piper.ts"
   },
   "dependencies": {
     "@fontsource/baloo-2": "^5.3.0",
