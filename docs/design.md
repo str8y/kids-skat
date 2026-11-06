@@ -20,7 +20,7 @@ Bildschirme **ohne Entwurf** (abgeleitet aus den Bausteinen): Profilauswahl, Geg
 ## Grundprinzipien
 
 - **Ohne Lesen bedienbar** (ab 5 Jahren): Symbole statt Text auf Knöpfen, alles wird vorgelesen; jeder Text in einer Sprechblase ist antippbar und wird erneut vorgelesen.
-- **Tablet quer**: feste Bühne 1180 × 820 px, wird auf den Bildschirm skaliert (`App.tsx`, `useStageScale`).
+- **Tablet quer**: Bühne in Designgröße 1180 × 820 px, wird auf den Bildschirm skaliert (`src/ui/stage.ts`, `useStageScale` in `App.tsx`). Auf breiteren Displays (iPhone quer) wächst die Bühne bis 1820 px in die Breite, auf 4:3-iPads bis 900 px in die Höhe – statt Ränder zu lassen. Notch und Home-Balken (Safe-Area) bleiben frei. Layouts deshalb mit flexibler Breite/Höhe bauen, keine festen 1180/820 annehmen.
 - **Große Ziele**: Knöpfe ≥ 56 px, Karten ≥ 84 px breit.
 - Freundliche Tierwelt am Waldtisch – warm und klar, nicht kitschig. Keine Emoji; Icons sind Inline-SVG mit Strichen (`src/ui/icons.tsx`), Tiere sind einfache SVG-Figuren (`src/ui/Animal.tsx`).
 

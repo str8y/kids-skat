@@ -27,7 +27,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: default; }
 button:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 
-.viewport { position: fixed; inset: 0; }
+.viewport { position: fixed; top: env(safe-area-inset-top); right: env(safe-area-inset-right); bottom: env(safe-area-inset-bottom); left: env(safe-area-inset-left); }
 .stage { position: absolute; left: 50%; top: 50%; transform-origin: center; overflow: hidden; border-radius: 0; }
 .screen { position: absolute; inset: 0; }
 
